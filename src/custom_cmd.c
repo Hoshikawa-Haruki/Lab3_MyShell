@@ -1,67 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h> // mkdir() 함수 정의
 #include <unistd.h>   // rmdir() 함수 정의
 
-int execute_command(const int argc, const char *argv[])
-{
-    if (strcmp(argv[0], "ls") == 0)
-    {
-        my_ls();
-        return 0;
-    }
-    else if (strcmp(argv[0], "pwd") == 0)
-    {
-        my_pwd();
-        return 0;
-    }
-    else if (strcmp(argv[0], "cd") == 0)
-    {
-        my_cd();
-        return 0;
-    }
-    else if (strcmp(argv[0], "mkdir") == 0)
-    {
-        my_mkdir(argv[1]);
-        return 0;
-    }
-    else if (strcmp(argv[0], "rmdir") == 0)
-    {
-        my_rmdir(argv[1]);
-        return 0;
-    }
-    else if (strcmp(argv[0], "ln") == 0)
-    {
-        my_ln(argc, argv);
-        return 0;
-    }
-    else if (strcmp(argv[0], "cp") == 0)
-    {
-        my_cp();
-        return 0;
-    }
-    else if (strcmp(argv[0], "rm") == 0)
-    {
-        my_rm();
-        return 0;
-    }
-    else if (strcmp(argv[0], "mv") == 0)
-    {
-        my_mv(argc, argv);
-        return 0;
-    }
-    else if (strcmp(argv[0], "cat") == 0)
-    {
-        my_cat(argv[1]);
-        return 0;
-    }
-    else
-    {
-        execvp(argv[0], argv);
-    }
-}
-
-void my_cat(const char *filename)
+void my_cat(char *filename)
 {
     FILE *file = fopen(filename, "r"); // 파일 열기 (읽기 모드)
     if (file == NULL)
@@ -88,7 +31,7 @@ void my_cat_stdin()
     }
 }
 
-void my_cat_to_file(const char *filename)
+void my_cat_to_file(char *filename)
 {
     FILE *file = fopen(filename, "w"); // 파일 열기 (쓰기 모드)
     if (file == NULL)
@@ -108,7 +51,7 @@ void my_cat_to_file(const char *filename)
     printf("Content saved to '%s'.\n", filename);
 }
 
-int my_mkdir(const char *path)
+int my_mkdir(char *path)
 {
     if (mkdir(path, 0755) == 0)
     { // 디렉토리 생성 함수
@@ -122,7 +65,7 @@ int my_mkdir(const char *path)
     }
 }
 
-int my_rmdir(const char *path)
+int my_rmdir(char *path)
 {
     if (rmdir(path) == 0)
     {
@@ -136,7 +79,7 @@ int my_rmdir(const char *path)
     }
 }
 
-void my_mv(const int argc, const char *argv[])
+void my_mv(int argc, char *argv[])
 {
     if (argc < 3)
     {
@@ -196,7 +139,7 @@ void my_mv(const int argc, const char *argv[])
     free(target);
 }
 
-void my_ln(const int argc, const char *argv[])
+void my_ln(int argc, char *argv[])
 {
     char cmd;
     char *src;
@@ -254,5 +197,63 @@ void my_ln(const int argc, const char *argv[])
     else
     {
         fprintf(stderr, "Unknown command...\n");
+    }
+}
+
+int execute_command(int argc, char *argv[])
+{
+    if (strcmp(argv[0], "ls") == 0)
+    {
+        //my_ls();
+        return 0;
+    }
+    else if (strcmp(argv[0], "pwd") == 0)
+    {
+        //my_pwd();
+        return 0;
+    }
+    else if (strcmp(argv[0], "cd") == 0)
+    {
+        //my_cd();
+        return 0;
+    }
+    else if (strcmp(argv[0], "mkdir") == 0)
+    {
+        my_mkdir(argv[1]);
+        return 0;
+    }
+    else if (strcmp(argv[0], "rmdir") == 0)
+    {
+        my_rmdir(argv[1]);
+        return 0;
+    }
+    else if (strcmp(argv[0], "ln") == 0)
+    {
+        my_ln(argc, argv);
+        return 0;
+    }
+    else if (strcmp(argv[0], "cp") == 0)
+    {
+        //my_cp();
+        return 0;
+    }
+    else if (strcmp(argv[0], "rm") == 0)
+    {
+       // my_rm();
+        return 0;
+    }
+    else if (strcmp(argv[0], "mv") == 0)
+    {
+        my_mv(argc, argv);
+        return 0;
+    }
+    else if (strcmp(argv[0], "cat") == 0)
+    {
+        //my_cat(argv[1]);
+        return 0;
+    }
+    else
+    {
+        execvp(argv[0], argv);
     }
 }
