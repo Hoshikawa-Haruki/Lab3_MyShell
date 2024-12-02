@@ -219,7 +219,7 @@ void my_pwd()
 
     if (getcwd(path, sizeof(path)) != NULL)
     {
-        printf("%s", path);
+        printf("%s\n", path);
     }
     else
     {
@@ -293,6 +293,18 @@ void my_cp(int argc, char *argv[])
     close(des_fd);
 }
 
+void my_rm(const char *path){
+    if(remove(path)==0){
+        printf("%s 삭제 완료\n",path);
+    }
+    else{
+        perror("해당 파일을 찾을수 없습니다");
+    }
+
+    //디렉토리 일때
+    
+}
+
 void execute_command(int argc, char *argv[])
 {
     if (strcmp(argv[0], "ls") == 0)
@@ -325,7 +337,7 @@ void execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
-        //my_rm();
+        my_rm(argv[1]);
     }
     else if (strcmp(argv[0], "mv") == 0)
     {
