@@ -59,7 +59,8 @@ int main()
 		// 	- 인자하나 없얘야함.
 		if (strcmp(argv[narg - 1], "&") == 0)
 		{
-			argv[narg--] = NULL;
+			argv[narg - 1] = NULL;
+			narg--;
 			is_background = 1;
 		}
 
@@ -155,55 +156,6 @@ int main()
 		// 혹시 이전에 에러나오면 명령어 수행하지 말기
 		if (is_error == 1)
 			continue;
-
-		if (is_pipe)
-		{
-			// 파이프 생성
-			if (pipe(pfd) == -1)
-			{
-				perror("pipe");
-				exit(1);
-			}
-
-			// 첫 번째 자식 프로세스 생성
-			if ((pid = fork()) == 0)
-			{
-				// 파이프 출력 연결
-				close(pfd[0]);
-				dup2(pfd[1], 1);
-				// 첫 번째 명령 실행
-				execute_command(narg, argv);
-			}
-			else if (pid < 0)
-			{
-				perror("fork failed");
-				exit(1);
-			}
-
-			// 두 번째 자식 프로세스 생성
-			if ((pid = fork()) == 0)
-			{
-				// 파이프 입력 연결
-				close(pfd[1]);
-				dup2(pfd[0], 0);
-
-				// 두 번째 명령 실행
-				execute_command(narg2, argv2);
-			}
-			else if (pid < 0)
-			{
-				perror("fork failed");
-				exit(1);
-			}
-
-			// 부모 프로세스: 파이프 닫기
-			close(pfd[0]);
-			close(pfd[1]);
-
-			// 자식 프로세스 종료 대기
-			wait(NULL);
-			wait(NULL);
-		}
 
 		if (is_pipe)
 		{
