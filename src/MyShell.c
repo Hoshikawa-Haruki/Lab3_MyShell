@@ -73,7 +73,6 @@ int main()
 		int fd_out = dup(1);
 		int fd_err = dup(2);
 
-
 		for (i = 0; i < narg; i++)
 		{
 			if (strcmp(argv[i], ">") == 0 || strcmp(argv[i], ">>") == 0)
@@ -135,6 +134,7 @@ int main()
 
 		// 뒤의 명령어 분할
 		char *argv2[50];
+		int narg2 = 0;
 
 		// 파이프 유무 확인
 		for (i = 0; i < narg; i++)
@@ -149,6 +149,7 @@ int main()
 					argv2[j] = argv[j + i + 1];
 				}
 				argv2[j] = NULL;
+				narg2 = j;
 			}
 		}
 		// 혹시 이전에 에러나오면 명령어 수행하지 말기
@@ -170,8 +171,6 @@ int main()
 				// 파이프 출력 연결
 				close(pfd[0]);
 				dup2(pfd[1], 1);
-				close(pfd[1]);
-
 				// 첫 번째 명령 실행
 				execute_command(narg, argv);
 			}
@@ -187,10 +186,9 @@ int main()
 				// 파이프 입력 연결
 				close(pfd[1]);
 				dup2(pfd[0], 0);
-				close(pfd[0]);
 
 				// 두 번째 명령 실행
-				execute_command(narg, argv);
+				execute_command(narg2, argv2);
 			}
 			else if (pid < 0)
 			{
@@ -217,8 +215,7 @@ int main()
 			{
 				// 자식 프로세스는 명령어 수행
 				// 명령어 수행
-				// execute_command(narg, argv);
-				execvp(argv[0], argv);
+				execute_command(narg, argv);
 			}
 			else if (pid > 0)
 			{

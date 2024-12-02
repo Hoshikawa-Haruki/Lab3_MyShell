@@ -252,7 +252,8 @@ void my_ls()
         pdir = opendir(dirPath);
         while ((pde = readdir(pdir)) != NULL)
         {
-            printf("%20s", pde->d_name);
+            if (pde->d_name[0] != '.')
+                printf("%-20s\n", pde->d_name);
         }
     }
 
