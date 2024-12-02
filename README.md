@@ -7,9 +7,24 @@
 git clone https://github.com/Hoshikawa-Haruki/Lab3_MyShell.git
 ```
 
-### 3. 실행파일 실행
+### 3. 명령어 구현 방법
 ```
-./<실행파일 이름>
+//디렉토리 이동
+cd src
+
+// custom_cmd에서 구현
+
+// 컴파일 실행
+gcc -c custom_cmd.c
+
+// 정적 라이브러리 생성
+ar rcs ../lib/libcommand.a custom_cmd.o
+
+// MyShell.c 컴파일
+gcc -I../include -L../lib MyShell.c -lcommand -o MyShell
+
+// MyShell 실행
+./MyShell
 ```
 
 
