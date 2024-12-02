@@ -73,7 +73,6 @@ int main()
 		int fd_out = dup(1);
 		int fd_err = dup(2);
 
-
 		for (i = 0; i < narg; i++)
 		{
 			if (strcmp(argv[i], ">") == 0 || strcmp(argv[i], ">>") == 0)
@@ -207,50 +206,117 @@ int main()
 			wait(NULL);
 		}
 
-		if (!is_pipe)
+		if (is_pipe)
 		{
-			// 명령어 수행 과정
-			// 자식 프로세스 생성
-			pid = fork();
-
-			if (pid == 0)
+			// 파이프 생성
+			if (pipe(pfd) == -1)
 			{
-				// 자식 프로세스는 명령어 수행
-				// 명령어 수행
-				// execute_command(narg, argv);
-				execvp(argv[0], argv);
+				perror("pipe");
+				exit(1);
 			}
-			else if (pid > 0)
-			{
 
-				// 백그라운드 작업이 아닐 경우
-				// 부모 프로세스는 자식의 동작을 대기
-				if (is_background == 0)
-					wait((int *)0);
+			// 첫 번째 자식 프로세스 생성
+			if ((pid = fork()) == 0)
+			{
+				// 파이프 출력 연결
+				close(pfd[0]);
+				dup2(pfd[1], 1);
+				close(pfd[1]);
+
+				// 첫 번째 명령 실행
+				execute_command(narg, argv);
+			}
+			else if (pid < 0)
+			{
+				perror("fork failed");
+				exit(1);
+			}
+
+			// 두 번째 자식 프로세스 생성
+			if ((pid = fork()) == 0)
+			{
+				// 파이프 입력 연결
+				close(pfd[1]);
+				dup2(pfd[0], 0);
+				close(pfd[0]);
+
+				// 두 번째 명령 실행
+				execute_command(narg, argv);
+			}
+			else if (pid < 0)
+			{
+				perror("fork failed");
+				exit(1);
+			}
+
+			// 부모 프로세스: 파이프 닫기
+			close(pfd[0]);
+			close(pfd[1]);
+
+			// 자식 프로세스 종료 대기
+			wait(NULL);
+			wait(NULL);
+		}
+		else
+		{
+			// cd 명령어 예외 처리 (부모 프로세스에서 실행)
+			if (strcmp(argv[0], "cd") == 0)
+			{
+				if (narg < 2)
+				{
+					fprintf(stderr, "Usage: cd <directory>\n");
+				}
 				else
-					printf("pid : %d\n", pid);
+				{
+					if (chdir(argv[1]) == 0)
+					{
+						char buf[1024];
+						if (getcwd(buf, sizeof(buf)) != NULL)
+						{
+							printf("Directory changed to: %s\n", buf);
+						}
+						else
+						{
+							perror("getcwd");
+						}
+					}
+					else
+					{
+						perror("cd");
+					}
+				}
 			}
 			else
 			{
-				perror("fork failed");
+				// 자식 프로세스 생성
+				pid = fork();
+
+				if (pid == 0)
+				{
+					// 자식 프로세스는 명령어 수행
+					execute_command(narg, argv);
+				}
+				else if (pid > 0)
+				{
+					// 백그라운드 작업이 아닐 경우
+					// 부모 프로세스는 자식의 동작을 대기
+					if (is_background == 0)
+					{
+						wait((int *)0);
+					}
+					else
+					{
+						printf("pid : %d\n", pid);
+					}
+				}
+				else
+				{
+					perror("fork failed");
+				}
 			}
-		}
-		// 리다이렉션 후 원래 파일 복구 및  파일 디스크립터 닫기
-
-		if ((dup2(fd_in, 0) == -1) || (dup2(fd_out, 1) == -1) || (dup2(fd_err, 2) == -1))
-		{
-			perror("dup2");
-			exit(1);
-		}
-
-		if ((close(fd_in) == -1) || (close(fd_out) == -1) || (close(fd_err) == -1))
-		{
-			perror("close");
-			exit(1);
 		}
 	}
 }
-
 int getargs(char *cmd, char **argv)
 {
 	int narg = 0;
