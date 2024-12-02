@@ -152,9 +152,7 @@ int main(){
 				close(pfd[1]);
 
 				// 첫 번째 명령 실행
-				execvp(argv[0], argv);
-				perror("execvp");
-				exit(1);
+				execute_command(narg, argv);
 			} else if (pid < 0) {
 				perror("fork failed");
 				exit(1);
@@ -168,9 +166,7 @@ int main(){
 				close(pfd[0]);
 
 				// 두 번째 명령 실행
-				execvp(argv2[0], argv2);
-				perror("execvp");
-				exit(1);
+				execute_command(narg, argv);
 			} else if (pid < 0) {
 				perror("fork failed");
 				exit(1);
@@ -194,8 +190,6 @@ int main(){
 				// 자식 프로세스는 명령어 수행
 				// 명령어 수행
 				execute_command(narg, argv);
-				perror("명령어 수행 불가");
-				exit(1);
 			}
 			else if(pid > 0){
 
