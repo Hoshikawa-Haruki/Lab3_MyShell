@@ -298,10 +298,8 @@ void my_rm(const char *path){
         printf("%s 삭제 완료\n",path);
     }
     else{
-        perror("해당 파일을 찾을수 없습니다");
-    }
-
-    
+        perror("error ");
+    } 
 }
 
 void execute_command(int argc, char *argv[])
