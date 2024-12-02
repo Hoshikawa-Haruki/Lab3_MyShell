@@ -6,6 +6,7 @@
 #include <sys/stat.h> // mkdir() 함수 정의
 #include <fcntl.h>
 #include <errno.h>
+#include <dirent.h>
 
 void my_cat(const char *filename)
 {
@@ -212,6 +213,40 @@ void my_ln(int argc, char *argv[])
     }
 }
 
+void my_pwd()
+{
+    char path[1024];
+
+    if (getcwd(path, sizeof(path)) != NULL)
+    {
+        printf("%s", path);
+    }
+    else
+    {
+        perror("명령어 실행 실패");
+    }
+}
+
+
+void my_ls(){
+    DIR *pdir;
+    struct dirent *pde;
+    int i=0;
+
+    char dirPath[1024];
+
+    if(getcwd(dirPath,sizeof(dirPath))!=NULL){
+        pdir = opendir(dirPath);
+        while((pde = readdir(pdir))!=NULL){
+            printf("%20s",pde->d_name);
+        }
+    }
+
+    printf("\n");
+    closedir(pdir);
+}
+
+
 void my_cp(int argc, char *argv[])
 {
     const int MAX_READ = 1024;
@@ -262,12 +297,12 @@ int execute_command(int argc, char *argv[])
 {
     if (strcmp(argv[0], "ls") == 0)
     {
-        // my_ls();
+        my_ls();
         return 0;
     }
     else if (strcmp(argv[0], "pwd") == 0)
     {
-        // my_pwd();
+        my_pwd();
         return 0;
     }
     else if (strcmp(argv[0], "cd") == 0)
@@ -297,7 +332,7 @@ int execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
-        // my_rm();
+        //my_rm();
         return 0;
     }
     else if (strcmp(argv[0], "mv") == 0)
@@ -307,7 +342,7 @@ int execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "cat") == 0)
     {
-        // my_cat(argv[1]);
+        my_cat(argv[1]);
         return 0;
     }
     else
