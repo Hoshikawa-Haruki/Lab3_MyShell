@@ -7,51 +7,29 @@
 #include <fcntl.h>
 #include <errno.h>
 
-void my_cat(char *filename)
+void my_cat(const char *filename)
 {
-    FILE *file = fopen(filename, "r"); // 파일 열기 (읽기 모드)
-    if (file == NULL)
+    int fd = open(filename, O_RDONLY); // 파일 열기 (읽기 전용)
+    if (fd < 0)
     {
         perror("cat"); // 파일 열기 실패 시 에러 메시지 출력
         return;
     }
 
     char buffer[1024];
-    while (fgets(buffer, sizeof(buffer), file) != NULL)
+    ssize_t bytes_read;
+
+    while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0)
     {
-        printf("%s", buffer); // 파일 내용을 표준 출력으로 출력
+        write(STDOUT_FILENO, buffer, bytes_read); // 읽은 데이터를 표준 출력으로 출력
     }
 
-    fclose(file); // 파일 닫기
-}
-
-void my_cat_stdin()
-{
-    char buffer[1024];
-    while (fgets(buffer, sizeof(buffer), stdin) != NULL)
+    if (bytes_read < 0)
     {
-        printf("%s", buffer); // 표준 입력 내용 출력
-    }
-}
-
-void my_cat_to_file(char *filename)
-{
-    FILE *file = fopen(filename, "w"); // 파일 열기 (쓰기 모드)
-    if (file == NULL)
-    {
-        perror("cat");
-        return;
+        perror("read"); // 읽기 실패 시 에러 메시지 출력
     }
 
-    char buffer[1024];
-    printf("Enter text (Ctrl+D to save and exit):\n");
-    while (fgets(buffer, sizeof(buffer), stdin) != NULL)
-    {
-        fprintf(file, "%s", buffer); // 표준 입력 내용을 파일에 쓰기
-    }
-
-    fclose(file); // 파일 닫기
-    printf("Content saved to '%s'.\n", filename);
+    close(fd); // 파일 닫기
 }
 
 int my_mkdir(char *path)
