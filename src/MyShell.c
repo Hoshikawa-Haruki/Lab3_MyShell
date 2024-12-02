@@ -73,7 +73,6 @@ int main()
 		int fd_out = dup(1);
 		int fd_err = dup(2);
 
-		printf("fddfd : %d\n", fd_out);
 
 		for (i = 0; i < narg; i++)
 		{

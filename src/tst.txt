@@ -1,6 +1,0 @@
-Makefile
-MyShell
-MyShell.c
-custom_cmd.c
-custom_cmd.o
-tst.txt
