@@ -18,7 +18,7 @@ gcc -I../include -L../lib MyShell.c -lcommand -o MyShell
 ```
 
 ### 3. 명령어 개발 방법
-```
+```bash
 //디렉토리 이동
 cd src
 

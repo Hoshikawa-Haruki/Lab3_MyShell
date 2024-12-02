@@ -14,12 +14,13 @@ pid_t pid;
 // 명령어와 인자를 구분하는 함수
 int getargs(char *cmd, char **argv);
 
-// 3. 시그널 처리 함수 
+// 3. 시그널 처리 함수
 void handler(int signo);
 
-int main(){
-	char buf[256];
-	char *argv[50];
+int main()
+{
+	char buf[1024];
+	char *argv[512];
 	int narg;
 	int is_background;
 	int is_error;
@@ -32,11 +33,12 @@ int main(){
 	// 인터럽트 같은 신호들은 부모(쉘)가 아닌 자식(실행중인 명령어)에게 전달
 	sigaction(SIGINT, &p_act, NULL);
 	sigaction(SIGQUIT, &p_act, NULL);
-	//sigaction(SIGTSTP, &p_act, NULL);
+	// sigaction(SIGTSTP, &p_act, NULL);
 
-	while(1){
+	while (1)
+	{
 		is_error = 0;
-		// 사용자 명령 입력 
+		// 사용자 명령 입력
 		printf("shell> ");
 		gets(buf);
 		clearerr(stdin);
@@ -44,21 +46,22 @@ int main(){
 		is_background = 0;
 		// 명령어와 인자를 구분
 		narg = getargs(buf, argv);
-		if(narg == 0){
+		if (narg == 0)
+		{
 			continue;
 		}
 
 		// 1. exit 이면 탈출할 것
-		if(strcmp(argv[0], "exit") == 0)
+		if (strcmp(argv[0], "exit") == 0)
 			exit(0);
 
 		// 2. 마지막 인자가 &이면 백그라운드 작업해야함
 		// 	- 인자하나 없얘야함.
-		if(strcmp(argv[narg - 1], "&") == 0){
+		if (strcmp(argv[narg - 1], "&") == 0)
+		{
 			argv[narg--] = NULL;
 			is_background = 1;
 		}
-
 
 		// 4. 리다이렉션 및 파이프
 		// 4-1 리다이렉션
@@ -70,42 +73,56 @@ int main(){
 		int fd_out = dup(1);
 		int fd_err = dup(2);
 
-		for(i = 0; i < narg; i++){
-			if(strcmp(argv[i], ">") == 0){	
-				if((fd = open(argv[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1){
+		printf("fddfd : %d\n", fd_out);
+
+		for (i = 0; i < narg; i++)
+		{
+			if (strcmp(argv[i], ">") == 0 || strcmp(argv[i], ">>") == 0)
+			{
+				int open_flag = (strcmp(argv[i], ">") == 0) ? O_WRONLY | O_CREAT | O_TRUNC : O_WRONLY | O_CREAT | O_APPEND;
+
+				fd = open(argv[i + 1], open_flag, 0644);
+				if (fd == -1)
+				{
 					perror("open");
-					exit(1);
+					is_error = 1; // 에러 플래그 설정
+					break;
 				}
-				if((dup2(fd, 1) == -1)){
+
+				if (dup2(fd, STDOUT_FILENO) == -1)
+				{
 					perror("dup2");
-					exit(1);
+					is_error = 1; // 에러 플래그 설정
+					break;
 				}
-				argv[i] = NULL;
+
+				close(fd);
+				argv[i] = NULL;		// 명령어 배열에서 연산자 제거
+				argv[i + 1] = NULL; // 리다이렉션 대상도 제거
+				narg = i;			// 유효한 인자 개수 조정
 				break;
 			}
-			else if(strcmp(argv[i], ">>") == 0){
-				if((fd = open(argv[i + 1], O_WRONLY | O_CREAT | O_APPEND, 0644)) == -1){
-					perror("open");
-					exit(1);
-				}
-				if((dup2(fd, 1) == -1)){
-					perror("dup2");
-					exit(1);
-				}
-				argv[i] = NULL;
-				break;
-			}	
-			else if(strcmp(argv[i], "<") == 0){
-				if((fd = open(argv[i + 1], O_RDONLY, 0644)) == -1){
+			else if (strcmp(argv[i], "<") == 0)
+			{
+				fd = open(argv[i + 1], O_RDONLY);
+				if (fd == -1)
+				{
 					perror("open");
 					is_error = 1;
 					break;
 				}
-				if((dup2(fd, 0) == -1)){
+
+				if (dup2(fd, STDIN_FILENO) == -1)
+				{
 					perror("dup2");
-					exit(1);
+					is_error = 1;
+					break;
 				}
+
+				close(fd);
 				argv[i] = NULL;
+				argv[i + 1] = NULL;
+				narg = i;
 				break;
 			}
 		}
@@ -121,45 +138,53 @@ int main(){
 		char *argv2[50];
 
 		// 파이프 유무 확인
-		for(i = 0; i < narg; i++){
-			if(strcmp(argv[i], "|") == 0){
+		for (i = 0; i < narg; i++)
+		{
+			if (strcmp(argv[i], "|") == 0)
+			{
 				is_pipe = 1;
 				argv[i] = NULL;
 
-				for(j = 0; j + i + 1 < narg; j++){
-					argv2[j] = argv[j+i+1];
+				for (j = 0; j + i + 1 < narg; j++)
+				{
+					argv2[j] = argv[j + i + 1];
 				}
 				argv2[j] = NULL;
 			}
-
 		}
 		// 혹시 이전에 에러나오면 명령어 수행하지 말기
-		if(is_error == 1)
+		if (is_error == 1)
 			continue;
 
-		if (is_pipe) {
+		if (is_pipe)
+		{
 			// 파이프 생성
-			if (pipe(pfd) == -1) {
+			if (pipe(pfd) == -1)
+			{
 				perror("pipe");
 				exit(1);
 			}
 
 			// 첫 번째 자식 프로세스 생성
-			if ((pid = fork()) == 0) {
+			if ((pid = fork()) == 0)
+			{
 				// 파이프 출력 연결
-				close(pfd[0]); 
+				close(pfd[0]);
 				dup2(pfd[1], 1);
 				close(pfd[1]);
 
 				// 첫 번째 명령 실행
 				execute_command(narg, argv);
-			} else if (pid < 0) {
+			}
+			else if (pid < 0)
+			{
 				perror("fork failed");
 				exit(1);
 			}
 
 			// 두 번째 자식 프로세스 생성
-			if ((pid = fork()) == 0) {
+			if ((pid = fork()) == 0)
+			{
 				// 파이프 입력 연결
 				close(pfd[1]);
 				dup2(pfd[0], 0);
@@ -167,7 +192,9 @@ int main(){
 
 				// 두 번째 명령 실행
 				execute_command(narg, argv);
-			} else if (pid < 0) {
+			}
+			else if (pid < 0)
+			{
 				perror("fork failed");
 				exit(1);
 			}
@@ -181,56 +208,62 @@ int main(){
 			wait(NULL);
 		}
 
-		if(!is_pipe){
-			// 명령어 수행 과정 
+		if (!is_pipe)
+		{
+			// 명령어 수행 과정
 			// 자식 프로세스 생성
 			pid = fork();
 
-			if(pid == 0){
+			if (pid == 0)
+			{
 				// 자식 프로세스는 명령어 수행
 				// 명령어 수행
-				execute_command(narg, argv);
+				// execute_command(narg, argv);
+				execvp(argv[0], argv);
 			}
-			else if(pid > 0){
+			else if (pid > 0)
+			{
 
-				// 백그라운드 작업이 아닐 경우 
+				// 백그라운드 작업이 아닐 경우
 				// 부모 프로세스는 자식의 동작을 대기
-				if(is_background == 0)
+				if (is_background == 0)
 					wait((int *)0);
 				else
 					printf("pid : %d\n", pid);
 			}
-			else{
+			else
+			{
 				perror("fork failed");
 			}
+		}
+		// 리다이렉션 후 원래 파일 복구 및  파일 디스크립터 닫기
 
-			// 리다이렉션 후 원래 파일 복구 및  파일 디스크립터 닫기
-			if (fd != -1){
+		if ((dup2(fd_in, 0) == -1) || (dup2(fd_out, 1) == -1) || (dup2(fd_err, 2) == -1))
+		{
+			perror("dup2");
+			exit(1);
+		}
 
-				if((dup2(fd_in, 0) == -1) || (dup2(fd_out, 1) == -1) || (dup2(fd_err, 2) == -1)){
-					perror("dup2");
-					exit(1);
-				}
-
-				if((close(fd) == -1) || (close(fd_in) == -1) || (close(fd_out) == -1) || (close(fd_err) == -1)) {
-					perror("close");
-					exit(1);
-				}
-			}
-
+		if ((close(fd_in) == -1) || (close(fd_out) == -1) || (close(fd_err) == -1))
+		{
+			perror("close");
+			exit(1);
 		}
 	}
 }
 
-int getargs(char *cmd, char **argv){
+int getargs(char *cmd, char **argv)
+{
 	int narg = 0;
 
-	while(*cmd){
-		if(*cmd == ' ' || *cmd == '\t')
+	while (*cmd)
+	{
+		if (*cmd == ' ' || *cmd == '\t')
 			*cmd++ = '\0';
-		else{
+		else
+		{
 			argv[narg++] = cmd++;
-			while(*cmd != '\0' && *cmd != ' ' && *cmd != '\t')
+			while (*cmd != '\0' && *cmd != ' ' && *cmd != '\t')
 				cmd++;
 		}
 	}
@@ -240,8 +273,10 @@ int getargs(char *cmd, char **argv){
 }
 
 // 자식에게 신호 전달
-void handler(int signo){
-	if(pid > 0){
+void handler(int signo)
+{
+	if (pid > 0)
+	{
 		kill(pid, signo);
 	}
 }
