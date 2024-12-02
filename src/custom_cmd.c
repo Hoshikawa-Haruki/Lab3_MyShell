@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h> // mkdir() 함수 정의
 #include <fcntl.h>
@@ -142,6 +142,37 @@ void my_mv(int argc, char *argv[])
     free(target);
 }
 
+void my_cd(int argc, char *argv[])
+{
+    const int MAX_BUF = 1024;
+    char buf[MAX_BUF];
+    if (argc < 2)
+    {
+        fprintf(stderr, "Usage: file_chdir dirname\n");
+        exit(1);
+    }
+    memset(buf, 0, MAX_BUF);
+    if (getcwd(buf, MAX_BUF) < 0)
+    {
+        perror("getcwd");
+        exit(1);
+    }
+    printf("working directory (before) = %s\n", buf);
+    if (chdir(argv[1]) < 0)
+    {
+        perror("chdir");
+        exit(1);
+    }
+
+    memset(buf, 0, MAX_BUF);
+    if (getcwd(buf, MAX_BUF) < 0)
+    {
+        perror("getcwd");
+        exit(1);
+    }
+    printf("working directory (after ) = %s\n", buf);
+}
+
 void my_ln(int argc, char *argv[])
 {
     char cmd;
@@ -263,7 +294,7 @@ int execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "cd") == 0)
     {
-        // my_cd();
+        my_cd(argc, argv);
         return 0;
     }
     else if (strcmp(argv[0], "mkdir") == 0)
