@@ -293,7 +293,14 @@ void my_cp(int argc, char *argv[])
     close(des_fd);
 }
 
-void my_rm(const char *path){
+void my_rm(int argc, char *argv[]){
+
+    char *path = argv[1];
+
+    if(argc<2){
+        fprintf(stderr,"rm : missing opernad \n");
+    }
+
     if(remove(path)==0){
         printf("%s 삭제 완료\n",path);
     }
@@ -334,7 +341,7 @@ void execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
-        my_rm(argv[1]);
+        my_rm(argc,argv);
     }
     else if (strcmp(argv[0], "mv") == 0)
     {
