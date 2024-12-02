@@ -324,60 +324,52 @@ void my_rm(const char *pathname) {
     }
 }
 
-int execute_command(int argc, char *argv[])
+void execute_command(int argc, char *argv[])
 {
     if (strcmp(argv[0], "ls") == 0)
     {
         my_ls();
-        return 0;
     }
     else if (strcmp(argv[0], "pwd") == 0)
     {
         my_pwd();
-        return 0;
     }
     else if (strcmp(argv[0], "cd") == 0)
     {
         my_cd(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "mkdir") == 0)
     {
         my_mkdir(argv[1]);
-        return 0;
     }
     else if (strcmp(argv[0], "rmdir") == 0)
     {
         my_rmdir(argv[1]);
-        return 0;
     }
     else if (strcmp(argv[0], "ln") == 0)
     {
         my_ln(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "cp") == 0)
     {
         my_cp(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
         my_rm(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "mv") == 0)
     {
         my_mv(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "cat") == 0)
     {
         my_cat(argv[1]);
-        return 0;
     }
     else
     {
         execvp(argv[0], argv);
     }
+
+    exit(0);
 }
