@@ -33,7 +33,7 @@ void my_cat(const char *filename)
     close(fd); // 파일 닫기
 }
 
-int my_mkdir(char *path)
+void my_mkdir(char *path)
 {
     if (mkdir(path, 0755) == 0)
     { // 디렉토리 생성 함수
@@ -47,7 +47,7 @@ int my_mkdir(char *path)
     }
 }
 
-int my_rmdir(char *path)
+void my_rmdir(char *path)
 {
     if (rmdir(path) == 0)
     {
@@ -301,7 +301,6 @@ void my_rm(const char *path){
         perror("해당 파일을 찾을수 없습니다");
     }
 
-    //디렉토리 일때
     
 }
 
