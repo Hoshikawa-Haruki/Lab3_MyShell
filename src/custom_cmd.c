@@ -33,31 +33,43 @@ void my_cat(const char *filename)
     close(fd); // 파일 닫기
 }
 
-int my_mkdir(char *path)
+void my_mkdir(int argc, char *path)
 {
+    if (argc < 2)
+    {
+        fprintf(stderr, "Error: Missing argument. Usage: mkdir <directory_name>\n");
+        exit(1);
+    }
+
     if (mkdir(path, 0755) == 0)
     { // 디렉토리 생성 함수
         printf("Directory '%s' created successfully.\n", path);
-        return 0;
+        exit(1);
     }
     else
     {
         perror("mkdir");
-        return -1;
+        exit(1);
     }
 }
 
-int my_rmdir(char *path)
+void my_rmdir(int argc, char *path)
 {
+    if (argc < 2)
+    {
+        fprintf(stderr, "Error: Missing argument. Usage: rmdir <directory_name>\n");
+        exit(1);
+    }
+
     if (rmdir(path) == 0)
     {
         printf("Directory '%s' removed successfully.\n", path);
-        return 0;
+        exit(1);
     }
     else
     {
         perror("rmdir");
-        return -1;
+        exit(1);
     }
 }
 
@@ -219,7 +231,7 @@ void my_pwd()
 
     if (getcwd(path, sizeof(path)) != NULL)
     {
-        printf("%s", path);
+        printf("%s\n", path);
     }
     else
     {
@@ -227,25 +239,26 @@ void my_pwd()
     }
 }
 
-
-void my_ls(){
+void my_ls()
+{
     DIR *pdir;
     struct dirent *pde;
-    int i=0;
+    int i = 0;
 
     char dirPath[1024];
 
-    if(getcwd(dirPath,sizeof(dirPath))!=NULL){
+    if (getcwd(dirPath, sizeof(dirPath)) != NULL)
+    {
         pdir = opendir(dirPath);
-        while((pde = readdir(pdir))!=NULL){
-            printf("%20s",pde->d_name);
+        while ((pde = readdir(pdir)) != NULL)
+        {
+            printf("%20s", pde->d_name);
         }
     }
 
     printf("\n");
     closedir(pdir);
 }
-
 
 void my_cp(int argc, char *argv[])
 {
@@ -293,60 +306,65 @@ void my_cp(int argc, char *argv[])
     close(des_fd);
 }
 
-int execute_command(int argc, char *argv[])
+void my_rm(int argc, char *argv[]){
+
+    char *path = argv[1];
+
+    if(argc<2){
+        fprintf(stderr,"rm : missing opernad \n");
+    }
+
+    if(remove(path)==0){
+        printf("%s 삭제 완료\n",path);
+    }
+}
+
+void execute_command(int argc, char *argv[])
 {
     if (strcmp(argv[0], "ls") == 0)
     {
         my_ls();
-        return 0;
     }
     else if (strcmp(argv[0], "pwd") == 0)
     {
         my_pwd();
-        return 0;
     }
     else if (strcmp(argv[0], "cd") == 0)
     {
         my_cd(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "mkdir") == 0)
     {
-        my_mkdir(argv[1]);
-        return 0;
+        my_mkdir(argc, argv[1]);
     }
     else if (strcmp(argv[0], "rmdir") == 0)
     {
-        my_rmdir(argv[1]);
-        return 0;
+        my_rmdir(argc, argv[1]);
     }
     else if (strcmp(argv[0], "ln") == 0)
     {
         my_ln(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "cp") == 0)
     {
         my_cp(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
-        //my_rm();
-        return 0;
+        my_rm(argc,argv);
     }
     else if (strcmp(argv[0], "mv") == 0)
     {
         my_mv(argc, argv);
-        return 0;
     }
     else if (strcmp(argv[0], "cat") == 0)
     {
         my_cat(argv[1]);
-        return 0;
     }
     else
     {
         execvp(argv[0], argv);
     }
+
+    exit(0);
 }
