@@ -33,7 +33,7 @@ void my_cat(const char *filename)
     close(fd); // 파일 닫기
 }
 
-int my_mkdir(char *path)
+void my_mkdir(char *path)
 {
     if (mkdir(path, 0755) == 0)
     { // 디렉토리 생성 함수
@@ -47,7 +47,7 @@ int my_mkdir(char *path)
     }
 }
 
-int my_rmdir(char *path)
+void my_rmdir(char *path)
 {
     if (rmdir(path) == 0)
     {
@@ -293,6 +293,37 @@ void my_cp(int argc, char *argv[])
     close(des_fd);
 }
 
+void my_rm(const char *pathname) {
+    struct stat path_stat;
+
+    // 경로 정보 가져오기
+    if (stat(pathname, &path_stat) != 0) {
+        perror("remove");
+        return;
+    }
+
+    // 파일 삭제
+    if (S_ISREG(path_stat.st_mode)) {
+        if (unlink(pathname) == 0) {
+            printf("File '%s' deleted successfully.\n", pathname);
+        } else {
+            perror("remove");
+        }
+    }
+    // 디렉토리 삭제
+    else if (S_ISDIR(path_stat.st_mode)) {
+        if (rmdir(pathname) == 0) {
+            printf("Directory '%s' deleted successfully.\n", pathname);
+        } else {
+            perror("remove");
+        }
+    }
+    // 알 수 없는 파일 타입
+    else {
+        fprintf(stderr, "remove: '%s': Unknown file type\n", pathname);
+    }
+}
+
 int execute_command(int argc, char *argv[])
 {
     if (strcmp(argv[0], "ls") == 0)
@@ -332,7 +363,7 @@ int execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
-        //my_rm();
+        my_rm(argc, argv);
         return 0;
     }
     else if (strcmp(argv[0], "mv") == 0)
