@@ -194,8 +194,6 @@ int main(){
 				// 자식 프로세스는 명령어 수행
 				// 명령어 수행
 				execute_command(narg, argv);
-				perror("명령어 수행 불가");
-				exit(1);
 			}
 			else if(pid > 0){
 

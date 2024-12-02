@@ -1,8 +1,11 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h> 
+#include <sys/types.h>
 #include <sys/stat.h> // mkdir() 함수 정의
-#include <unistd.h>   // rmdir() 함수 정의
+#include <fcntl.h>
+#include <errno.h>
 
 void my_cat(char *filename)
 {
@@ -200,21 +203,67 @@ void my_ln(int argc, char *argv[])
     }
 }
 
+void my_cp(int argc, char *argv[])
+{
+    const int MAX_READ = 1024;
+    int src_fd;
+    int des_fd;
+
+    char buf[MAX_READ];
+    ssize_t rcnt;
+    ssize_t tot_rcnt = 0;
+
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+    if (argc < 3)
+    {
+        fprintf(stderr, "Usage : file_copy src_file des_file\n");
+        exit(1);
+    }
+
+    if ((src_fd = open(argv[1], O_RDONLY)) == -1)
+    {
+        perror("src open");
+        exit(1);
+    }
+
+    if ((des_fd = creat(argv[2], mode)) == -1)
+    {
+        perror("des open");
+        exit(1);
+    }
+
+    while ((rcnt = read(src_fd, buf, MAX_READ)) > 0)
+    {
+        tot_rcnt += write(des_fd, buf, rcnt);
+    }
+
+    if (rcnt < 0)
+    {
+        perror("read");
+        exit(1);
+    }
+
+    printf("total write count = %ld\n", tot_rcnt);
+    close(src_fd);
+    close(des_fd);
+}
+
 int execute_command(int argc, char *argv[])
 {
     if (strcmp(argv[0], "ls") == 0)
     {
-        //my_ls();
+        // my_ls();
         return 0;
     }
     else if (strcmp(argv[0], "pwd") == 0)
     {
-        //my_pwd();
+        // my_pwd();
         return 0;
     }
     else if (strcmp(argv[0], "cd") == 0)
     {
-        //my_cd();
+        // my_cd();
         return 0;
     }
     else if (strcmp(argv[0], "mkdir") == 0)
@@ -234,12 +283,12 @@ int execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "cp") == 0)
     {
-        //my_cp();
+        my_cp(argc, argv);
         return 0;
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
-       // my_rm();
+        // my_rm();
         return 0;
     }
     else if (strcmp(argv[0], "mv") == 0)
@@ -249,7 +298,7 @@ int execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "cat") == 0)
     {
-        //my_cat(argv[1]);
+        // my_cat(argv[1]);
         return 0;
     }
     else
