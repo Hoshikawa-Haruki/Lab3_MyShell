@@ -33,31 +33,43 @@ void my_cat(const char *filename)
     close(fd); // 파일 닫기
 }
 
-void my_mkdir(char *path)
+void my_mkdir(int argc, char *path)
 {
+    if (argc < 2)
+    {
+        fprintf(stderr, "Error: Missing argument. Usage: mkdir <directory_name>\n");
+        exit(1);
+    }
+
     if (mkdir(path, 0755) == 0)
     { // 디렉토리 생성 함수
         printf("Directory '%s' created successfully.\n", path);
-        return 0;
+        exit(1);
     }
     else
     {
         perror("mkdir");
-        return -1;
+        exit(1);
     }
 }
 
-void my_rmdir(char *path)
+void my_rmdir(int argc, char *path)
 {
+    if (argc < 2)
+    {
+        fprintf(stderr, "Error: Missing argument. Usage: rmdir <directory_name>\n");
+        exit(1);
+    }
+
     if (rmdir(path) == 0)
     {
         printf("Directory '%s' removed successfully.\n", path);
-        return 0;
+        exit(1);
     }
     else
     {
         perror("rmdir");
-        return -1;
+        exit(1);
     }
 }
 
@@ -227,25 +239,26 @@ void my_pwd()
     }
 }
 
-
-void my_ls(){
+void my_ls()
+{
     DIR *pdir;
     struct dirent *pde;
-    int i=0;
+    int i = 0;
 
     char dirPath[1024];
 
-    if(getcwd(dirPath,sizeof(dirPath))!=NULL){
+    if (getcwd(dirPath, sizeof(dirPath)) != NULL)
+    {
         pdir = opendir(dirPath);
-        while((pde = readdir(pdir))!=NULL){
-            printf("%20s",pde->d_name);
+        while ((pde = readdir(pdir)) != NULL)
+        {
+            printf("%20s", pde->d_name);
         }
     }
 
     printf("\n");
     closedir(pdir);
 }
-
 
 void my_cp(int argc, char *argv[])
 {
@@ -293,13 +306,16 @@ void my_cp(int argc, char *argv[])
     close(des_fd);
 }
 
-void my_rm(const char *path){
-    if(remove(path)==0){
-        printf("%s 삭제 완료\n",path);
+void my_rm(const char *path)
+{
+    if (remove(path) == 0)
+    {
+        printf("%s 삭제 완료\n", path);
     }
-    else{
-        perror("error ");
-    } 
+    else
+    {
+        perror("해당 파일을 찾을수 없습니다");
+    }
 }
 
 void execute_command(int argc, char *argv[])
@@ -318,11 +334,11 @@ void execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "mkdir") == 0)
     {
-        my_mkdir(argv[1]);
+        my_mkdir(argc, argv[1]);
     }
     else if (strcmp(argv[0], "rmdir") == 0)
     {
-        my_rmdir(argv[1]);
+        my_rmdir(argc, argv[1]);
     }
     else if (strcmp(argv[0], "ln") == 0)
     {
