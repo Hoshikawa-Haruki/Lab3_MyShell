@@ -227,25 +227,26 @@ void my_pwd()
     }
 }
 
-
-void my_ls(){
+void my_ls()
+{
     DIR *pdir;
     struct dirent *pde;
-    int i=0;
+    int i = 0;
 
     char dirPath[1024];
 
-    if(getcwd(dirPath,sizeof(dirPath))!=NULL){
+    if (getcwd(dirPath, sizeof(dirPath)) != NULL)
+    {
         pdir = opendir(dirPath);
-        while((pde = readdir(pdir))!=NULL){
-            printf("%20s",pde->d_name);
+        while ((pde = readdir(pdir)) != NULL)
+        {
+            printf("%20s", pde->d_name);
         }
     }
 
     printf("\n");
     closedir(pdir);
 }
-
 
 void my_cp(int argc, char *argv[])
 {
@@ -293,20 +294,24 @@ void my_cp(int argc, char *argv[])
     close(des_fd);
 }
 
-void my_rm(int argc, char *argv[]){
+void my_rm(int argc, char *argv[])
+{
 
     char *path = argv[1];
 
-    if(argc<2){
-        fprintf(stderr,"rm : missing opernad \n");
+    if (argc < 2)
+    {
+        fprintf(stderr, "rm : missing operand \n");
     }
 
-    if(remove(path)==0){
-        printf("%s 삭제 완료\n",path);
+    if (remove(path) == 0)
+    {
+        printf("%s 삭제 완료\n", path);
     }
-    else{
+    else
+    {
         perror("error ");
-    } 
+    }
 }
 
 void execute_command(int argc, char *argv[])
@@ -341,7 +346,7 @@ void execute_command(int argc, char *argv[])
     }
     else if (strcmp(argv[0], "rm") == 0)
     {
-        my_rm(argc,argv);
+        my_rm(argc, argv);
     }
     else if (strcmp(argv[0], "mv") == 0)
     {
